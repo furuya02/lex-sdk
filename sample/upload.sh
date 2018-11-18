@@ -1,2 +1,2 @@
-zip upload.zip index.js lex-sdk.js
+zip -r ../upload.zip index.js node_modules
 
