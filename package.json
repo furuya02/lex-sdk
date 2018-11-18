@@ -1,6 +1,6 @@
 {
   "name": "lex-sdk",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "lex-sdk",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,7 +15,7 @@
     "url": "git+https://github.com/furuya02/lex-sdk.git"
   },
   "author": "Shinichi Hirauchi <sin@sapporoworks.ne.jp> (https://dev.classmethod.jp/author/sin/)",
-  "license": "ISC",
+  "license": "Apache 2.0",
   "bugs": {
     "url": "https://github.com/furuya02/lex-sdk/issues"
   },

@@ -7,7 +7,7 @@ With LEX SDK for Node.js (TypeScript), you can create **Amazon Lex** code in the
 
 ## Version
 
-0.0.3
+0.0.4
 
 ## Install
 
