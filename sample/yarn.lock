@@ -5,3 +5,7 @@
 "@types/node@^10.12.9":
   version "10.12.9"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.9.tgz#a07bfa74331471e1dc22a47eb72026843f7b95c8"
+
+lex-sdk@^0.0.2-b:
+  version "0.0.2-b"
+  resolved "https://registry.yarnpkg.com/lex-sdk/-/lex-sdk-0.0.2-b.tgz#cbf2bd0e1e3105f4d8870e57977545b2c1255392"

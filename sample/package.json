@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@types/node": "^10.12.9",
+    "lex-sdk": "^0.0.2-b"
+  }
+}

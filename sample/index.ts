@@ -1,5 +1,7 @@
 
-import * as Lex from './lex-sdk';
+// Order Flower Sample
+
+import * as Lex from 'lex-sdk';
 
 let bot: Lex.Bot;
 exports.handler = async function (event: Lex.IntentRequest, context: any) {
