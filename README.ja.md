@@ -1,6 +1,6 @@
 # LEX SDK
 
-##  概要
+##  概要
 
 Node.js (TypeScript) 用のLEX SDKでは、[Alexa SDK V2](https://github.com/alexa/alexa-skills-kit-sdk-for-nodejs)と同じ感じで**Amazon Lex**のコード作成できます。
 
