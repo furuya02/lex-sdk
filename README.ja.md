@@ -1,22 +1,22 @@
 # LEX SDK
 *[English](https://github.com/furuya02/lex-sdk/README.md) | [日本語](https://github.com/furuya02/lex-sdk/README.ja.md)*
 
-## Overview
+##  概要
 
-With LEX SDK for Node.js (TypeScript), you can create **Amazon Lex** code in the same way as [Alexa SDK V2](https://github.com/alexa/alexa-skills-kit-sdk-for-nodejs).
+Node.js (TypeScript) 用のLEX SDKでは、[Alexa SDK V2](https://github.com/alexa/alexa-skills-kit-sdk-for-nodejs)と同じ感じで**Amazon Lex**のコード作成できます。
 
-## Version
+## バージョン
 
 0.0.3
 
-## Install
+## インストール
 
 ```
 npm install --save lex-sdk
 ```
 
-## Importing Dependencies
 
+## 依存関係のインポート
 **JavaScript**
 ```
 const Lex = require('lex-sdk');
@@ -26,9 +26,10 @@ const Lex = require('lex-sdk');
 import * as Lex from 'lex-sdk';
 ```
 
-## Adding Request Handlers
+## ハンドラーの追加
 
-The following code example shows how to configure a handler to be invoked when the skill receives the OrderFlowers(Intent).
+次のコード例は、スキルがOrderFlowers(インテント)を受け取ったときに呼び出されるようにハンドラを設定する例です。
+
 
 **JavaScript**
 ```js
@@ -89,9 +90,9 @@ const OrderIntentHandler: Lex.RequestHandler = {
 }
 ```
 
-## Adding Error Handler
+## エラーハンドラーの追加
 
-Error handler is a good place to inject your error handling logic such as unhandled request, api service time out, etc. The following sample adds a catch all error handler to your skill to ensure skill returns a meaningful message in case of all errors.
+エラーハンドラは、処理されていないリクエスト、APIサービスのタイムアウトなどのエラー処理ロジックを注入するのに適しています。次のサンプルでは、すべてのエラーが発生した場合にスキルが意味のあるメッセージを返すように、
 
 **JavaScript**
 ```js
@@ -130,12 +131,11 @@ const ErrorHandler = {
 }
 ```
 
-## Creating the Lambda Handler
+## Lambdaハンドラの作成
 
-The Lambda handler is the entry point for your AWS Lambda function. 
+Lambdaハンドラは、AWS Lambda関数のエントリポイントです。 
 
-The following code example creates a Lambda handler function to route all inbound request to your skill. The Lambda handler function creates an SDK Skill instance configured with the request handlers that you just created.
-
+次のコード例は、すべての着信要求を自分のスキルにルーティングするためのLambdaハンドラ関数を作成します。 Lambdaハンドラ関数は、作成したリクエストハンドラで構成されたSDKスキルインスタンスを作成します。
 
 **JavaScript**
 ```js
