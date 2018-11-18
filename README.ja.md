@@ -1,5 +1,4 @@
 # LEX SDK
-*[English](https://github.com/furuya02/lex-sdk/README.md) | [日本語](https://github.com/furuya02/lex-sdk/README.ja.md)*
 
 ##  概要
 
@@ -7,7 +6,7 @@ Node.js (TypeScript) 用のLEX SDKでは、[Alexa SDK V2](https://github.com/ale
 
 ## バージョン
 
-0.0.3
+0.0.4
 
 ## インストール
 

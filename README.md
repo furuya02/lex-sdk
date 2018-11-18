@@ -1,5 +1,4 @@
 # LEX SDK
-*[English](https://github.com/furuya02/lex-sdk/README.md) | [日本語](https://github.com/furuya02/lex-sdk/README.ja.md)*
 
 ## Overview
 
