@@ -1,8 +1,12 @@
 {
   "name": "lex-sdk",
-  "version": "0.0.1",
-  "description": "Amazon Lex SDK",
-  "main": "index.js",
+  "version": "0.0.2b",
+  "description": "lex-sdk",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "directories": {
+    "lib": "lib"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,12 +14,8 @@
     "type": "git",
     "url": "git+https://github.com/furuya02/lex-sdk.git"
   },
-  "keywords": [
-    "lex",
-    "sdk"
-  ],
-  "author": "Hirauchi.Shinichi",
-  "license": "Apatch 2.0",
+  "author": "Shinichi Hirauchi <sin@sapporoworks.ne.jp> (https://dev.classmethod.jp/author/sin/)",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/furuya02/lex-sdk/issues"
   },

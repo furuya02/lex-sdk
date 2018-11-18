@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "es2018",
+        "module": "commonjs",
+        //"target": "es6",
+        "sourceMap": true,
+        "declaration": true,
+        "alwaysStrict": true,// use strict;
+        "noUnusedLocals": true, // 未使用変数
+        "noUnusedParameters": true,// 未使用引数
+        "noImplicitAny": true, // 暗黙のAny 
+        "allowUnreachableCode": false,// 到達しないコード
+        "allowUnusedLabels": false,// 到達しないラベル
+        "strictNullChecks": true,// null チェック
+        "noImplicitReturns": true,// 戻り値
+        "outDir": "../dist"
+    }
+}
