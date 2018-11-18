@@ -90,7 +90,7 @@ const OrderIntentHandler: Lex.RequestHandler = {
 
 ## Adding Error Handler
 
-Error handler is a good place to inject your error handling logic such as unhandled request, api service time out, etc. The following sample adds a catch all error handler to your skill to ensure skill returns a meaningful message in case of all errors.
+The error handler is suitable for injecting unprocessed requests, error handling logic. In the next sample, the bot will return an error message if all errors occur.
 
 **JavaScript**
 ```js
@@ -131,10 +131,9 @@ const ErrorHandler = {
 
 ## Creating the Lambda Handler
 
-The Lambda handler is the entry point for your AWS Lambda function. 
+The entry point of the Lambda function.
 
-The following code example creates a Lambda handler function to route all inbound request to your skill. The Lambda handler function creates an SDK Skill instance configured with the request handlers that you just created.
-
+The following code example is an example of processing requests to all Lambda with SDK.
 
 **JavaScript**
 ```js
