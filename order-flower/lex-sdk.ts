@@ -35,7 +35,7 @@ export enum ContentType {
 //************************************************************ */
 // Interface
 //************************************************************ */
-interface SessionAttributes {
+export interface SessionAttributes {
     [ket:string]: string
 }
 
@@ -113,7 +113,7 @@ export interface HandlerInput {
 // Response
 //************************************************************ */
 
-interface ElicitIntentResponse {
+export interface ElicitIntentResponse {
     sessionAttributes: SessionAttributes,
     dialogAction: {
         type: DialogActionType.ElicitIntent,
@@ -122,7 +122,7 @@ interface ElicitIntentResponse {
     },
 }
 
-interface ElicitSlotResponse {
+export interface ElicitSlotResponse {
     sessionAttributes: SessionAttributes,
     dialogAction: {
         type: DialogActionType.ElicitSlot,
@@ -134,7 +134,7 @@ interface ElicitSlotResponse {
     }
 }
 
-interface CloseResponse {
+export interface CloseResponse {
     sessionAttributes: SessionAttributes,
     dialogAction: {
         type: DialogActionType,
@@ -144,7 +144,7 @@ interface CloseResponse {
     }
 }
 
-interface DelegateResponse {
+export interface DelegateResponse {
     sessionAttributes: SessionAttributes,
     dialogAction: {
         type: DialogActionType,
@@ -152,19 +152,19 @@ interface DelegateResponse {
     }
 }
 
-type Response = ElicitIntentResponse | ElicitSlotResponse | CloseResponse | DelegateResponse
+export type LexResponse = ElicitIntentResponse | ElicitSlotResponse | CloseResponse | DelegateResponse
 
 //************************************************************ */
 // Handler
 //************************************************************ */
 export interface RequestHandler {
     canHandle(input : HandlerInput) : Promise<boolean> | boolean;
-    handle(input : HandlerInput) : Promise<Response> | Response;
+    handle(input : HandlerInput) : Promise<LexResponse> | LexResponse;
 }
 
 export interface ErrorHandler {
     canHandle(handlerInput : HandlerInput, error : Error) : Promise<boolean> | boolean;
-    handle(handlerInput : HandlerInput, error : Error) : Promise<Response> | Response;
+    handle(handlerInput : HandlerInput, error : Error) : Promise<LexResponse> | LexResponse;
 }
 
 //************************************************************ */
