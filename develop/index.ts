@@ -1,6 +1,5 @@
 
 // Order Flower Sample
-
 import * as Lex from './lex-sdk';
 
 let bot: Lex.Bot;
