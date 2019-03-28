@@ -6,7 +6,7 @@ With LEX SDK for Node.js (TypeScript), you can create **Amazon Lex** code in the
 
 ## Version
 
-0.0.4
+0.0.7
 
 ## Install
 
@@ -141,7 +141,7 @@ let bot;
 exports.handler = async function (event, context) {
     if (!bot) {
         bot = Lex.BotBuilder()
-            .addRequestHandler(
+            .addRequestHandlers(
                 OrderIntentHandler)
             .addErrorHandler(ErrorHandler)
             .create();
@@ -155,7 +155,7 @@ let bot: Lex.Bot;
 exports.handler = async function (event: Lex.IntentRequest, context: any) {
     if (!bot) {
         bot = Lex.BotBuilder()
-            .addRequestHandler(
+            .addRequestHandlers(
                 OrderIntentHandler)
             .addErrorHandler(ErrorHandler)
             .create();

@@ -1,9 +1,10 @@
 
 // Order Flower Sample
 
-import * as Lex from 'lex-sdk';
+import * as Lex from './lex-sdk';
 
 let bot: Lex.Bot;
+declare var exports: any; 
 exports.handler = async function (event: Lex.IntentRequest, context: any) {
     console.log(JSON.stringify(event));
     if (!bot) {

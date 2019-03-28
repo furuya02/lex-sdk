@@ -142,7 +142,7 @@ let bot;
 exports.handler = async function (event, context) {
     if (!bot) {
         bot = Lex.BotBuilder()
-            .addRequestHandler(
+            .addRequestHandlers(
                 OrderIntentHandler)
             .addErrorHandler(ErrorHandler)
             .create();
@@ -156,7 +156,7 @@ let bot: Lex.Bot;
 exports.handler = async function (event: Lex.IntentRequest, context: any) {
     if (!bot) {
         bot = Lex.BotBuilder()
-            .addRequestHandler(
+            .addRequestHandlers(
                 OrderIntentHandler)
             .addErrorHandler(ErrorHandler)
             .create();
