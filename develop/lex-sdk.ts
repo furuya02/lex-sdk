@@ -32,6 +32,11 @@ export enum ContentType {
     PlainText = "PlainText",
 }
 
+export enum CardContentType {
+    Generic = "application/vnd.amazonaws.card.generic",
+}
+
+
 //************************************************************ */
 // Interface
 //************************************************************ */
@@ -54,19 +59,14 @@ export interface SlotDetails {
 
 export interface ResponseCard {
     version: string,
-    contentType: string,
+    contentType: CardContentType,
     genericAttachments: [
         {
             title: string,
             subTitle: string,
             imageUrl: string,
             attachmentLinkUrl: string,
-            buttons:[ 
-                {
-                    text: string,
-                    value: string
-                }
-            ]
+            buttons: {text: string, value: string}[] 
         } 
     ] 
 }

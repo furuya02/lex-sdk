@@ -1,6 +1,6 @@
 {
   "name": "lex-sdk",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "description": "lex-sdk",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
