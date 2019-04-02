@@ -10,7 +10,7 @@ exports.handler = async function (event: Lex.IntentRequest, context: any) {
         bot = Lex.BotBuilder()
             .addRequestHandlers(
                 OrderIntentHandler)
-            .addErrorHandler(ErrorHandler)
+            .addErrorHandlers(ErrorHandler)
             .create();
     }
     return bot.invoke(event, context);

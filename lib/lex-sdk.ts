@@ -167,6 +167,14 @@ export interface ErrorHandler {
     handle(handlerInput : HandlerInput, error : Error) : Promise<LexResponse> | LexResponse;
 }
 
+export interface RequestInterceptor {
+    process(handlerInput: HandlerInput): Promise<void> | void;
+}
+
+export interface ResponseInterceptor {
+    process(handlerInput: HandlerInput, response?: Promise<LexResponse> | LexResponse): Promise<void> | void;
+}
+
 //************************************************************ */
 // class ResponseBuilder
 //************************************************************ */
@@ -224,29 +232,52 @@ export class ResponseBuilder {
 
 class Bot {
 
-    chains: RequestHandler[] = [];
-    errorHandler: ErrorHandler;
+    requestChains: RequestHandler[] = [];
+    errorChains: ErrorHandler[] = [];
+    requestInterceptorChains: RequestInterceptor[] = [];
+    responseInterceptorChains: ResponseInterceptor[] = [];
     
     constructor() {
 
     }
 
+    addRequestInterceptors(...requestInterceptors : RequestInterceptor[]) {
+        requestInterceptors.forEach( requestInterceptor => {
+            this.requestInterceptorChains.push(requestInterceptor);
+        })
+        return this;
+    } 
+
+    addResponseInterceptors(...responseInterceptors : ResponseInterceptor[]) {
+        responseInterceptors.forEach( responseInterceptor => {
+            this.responseInterceptorChains.push(responseInterceptor);
+        })
+        return this;
+    } 
+
     addRequestHandler(requestHandler: RequestHandler) {
-        this.chains.push(requestHandler);
+        this.requestChains.push(requestHandler);
         return this;
     }
     
     addRequestHandlers(...requestHandlers : RequestHandler[]) {
         requestHandlers.forEach( requestHandler => {
-            this.chains.push(requestHandler);
+            this.requestChains.push(requestHandler);
         })
         return this;
     } 
 
     addErrorHandler(errorHandler: ErrorHandler) {
-        this.errorHandler = errorHandler;
+        this.errorChains.push(errorHandler);
         return this;
     }
+
+    addErrorHandlers(...errorHandlers : ErrorHandler[]) {
+        errorHandlers.forEach( errorHandler => {
+            this.errorChains.push(errorHandler);
+        })
+        return this;
+    } 
 
     create() {
         return this;
@@ -267,16 +298,30 @@ class Bot {
             attributes: requestEnvelope.sessionAttributes,
         };
 
-        const targets = this.chains.filter( (handler:RequestHandler) => {
+        this.requestInterceptorChains.forEach(requestInterceptor=>{
+            requestInterceptor.process(input);
+        })
+
+        const requestTargets = this.requestChains.filter( (handler:RequestHandler) => {
             return handler.canHandle(input);
         });
         try {
-            if((<RequestHandler[]>targets).length > 0){
-                return targets[0].handle(input);
+            if((<RequestHandler[]>requestTargets).length > 0){
+                let response = requestTargets[0].handle(input);
+
+                this.responseInterceptorChains.forEach(responseInterceptor=>{
+                    responseInterceptor.process(input, response);
+                })
+
+                return response;
             }
         } catch (error) {
-            if(this.errorHandler.canHandle(input,error)){
-                return this.errorHandler.handle(input, error);
+
+            const errorTargets = this.errorChains.filter( (handler:ErrorHandler) => {
+                return handler.canHandle(input, error);
+            });
+            if((<ErrorHandler[]>errorTargets).length > 0){
+                return errorTargets[0].handle(input, error);
             }
         } 
         throw Error('ERROR:No matching handler')  

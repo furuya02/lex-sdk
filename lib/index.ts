@@ -5,5 +5,5 @@ export {SessionAttributes, Slots, SlotDetails,ResponseCard, IntentRequest, Messa
 
 export {LexResponse, ElicitIntentResponse, ElicitSlotResponse, CloseResponse, DelegateResponse} from './lex-sdk';
 
-export {RequestHandler, ErrorHandler, ResponseBuilder} from './lex-sdk';
+export {RequestHandler, ErrorHandler, ResponseBuilder, RequestInterceptor, ResponseInterceptor} from './lex-sdk';
 

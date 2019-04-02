@@ -6,7 +6,7 @@ Node.js (TypeScript) 用のLEX SDKでは、[Alexa SDK V2](https://github.com/ale
 
 ## バージョン
 
-0.1.1
+0.1.2
 
 ## インストール
 
