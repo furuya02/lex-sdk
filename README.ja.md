@@ -6,7 +6,7 @@ Node.js (TypeScript) 用のLEX SDKでは、[Alexa SDK V2](https://github.com/ale
 
 ## バージョン
 
-0.1.2
+0.2.0
 
 ## インストール
 
@@ -41,7 +41,7 @@ const OrderIntentHandler = {
         if (h.source === Lex.InvocationSource.DialogCodeHook) {
             
             return h.responseBuilder
-                .getDelegateResponse(h.attributes, h.slots)
+                .getDelegateResponse(h.slots)
 
         } else {  // FulfillmentCodeHook
 
@@ -51,7 +51,6 @@ const OrderIntentHandler = {
 
             return h.responseBuilder
             .getCloseResponse(
-                h.attributes,
                 Lex.FulfillmentState.Fulfilled,
                 message)
         }
@@ -71,7 +70,7 @@ const OrderIntentHandler: Lex.RequestHandler = {
         if (h.source === Lex.InvocationSource.DialogCodeHook) {
             
             return h.responseBuilder
-                .getDelegateResponse(h.attributes, h.slots)
+                .getDelegateResponse(h.slots)
 
         } else {  // FulfillmentCodeHook
 
@@ -81,7 +80,6 @@ const OrderIntentHandler: Lex.RequestHandler = {
 
             return h.responseBuilder
             .getCloseResponse(
-                h.attributes,
                 Lex.FulfillmentState.Fulfilled,
                 message)
         }
@@ -105,7 +103,6 @@ const ErrorHandler = {
             content: "ERROR " + error.message };
         return h.responseBuilder
         .getCloseResponse(
-            h.attributes,
             Lex.FulfillmentState.Fulfilled,
             message)
     }
@@ -123,7 +120,6 @@ const ErrorHandler = {
             content: "ERROR " + error.message };
         return h.responseBuilder
         .getCloseResponse(
-            h.attributes,
             Lex.FulfillmentState.Fulfilled,
             message)
     }

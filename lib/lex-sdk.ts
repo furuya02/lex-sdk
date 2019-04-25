@@ -36,6 +36,14 @@ export enum CardContentType {
     Generic = "application/vnd.amazonaws.card.generic",
 }
 
+//************************************************************ */
+// PersistenceAdapter
+//************************************************************ */
+export interface PersistenceAdapter {
+    getAttributes(userId : string) : Promise<{[key : string] : any}>;
+    saveAttributes(userId : string, attributes : {[key : string] : any}) : Promise<void>;
+}
+
 
 //************************************************************ */
 // Interface
@@ -106,7 +114,8 @@ export interface HandlerInput {
     slots: Slots
     slotDetails: SlotDetails
     intentName: string
-    attributes: SessionAttributes,
+    //attributes: SessionAttributes,
+    attributesManager: AttributesManager
 }
 
 //************************************************************ */
@@ -180,9 +189,9 @@ export interface ResponseInterceptor {
 //************************************************************ */
 export class ResponseBuilder {
 
-    getElicitIntentResponse(sessionAttributes: SessionAttributes, message?: Message, responseCard?: ResponseCard): ElicitIntentResponse {
+    getElicitIntentResponse(message?: Message, responseCard?: ResponseCard): ElicitIntentResponse {
         return {
-            sessionAttributes: sessionAttributes, 
+            sessionAttributes: {}, 
             dialogAction: {
                 type: DialogActionType.ElicitIntent,
                 message: message,
@@ -191,9 +200,9 @@ export class ResponseBuilder {
         };
     }
 
-    getElicitSlotResponse(sessionAttributes: SessionAttributes, intentName:string, slots:Slots, slotToElicit:string, message?:Message, responseCard?: ResponseCard): ElicitSlotResponse {
+    getElicitSlotResponse(intentName:string, slots:Slots, slotToElicit:string, message?:Message, responseCard?: ResponseCard): ElicitSlotResponse {
         return {
-            sessionAttributes: sessionAttributes,
+            sessionAttributes: {},
             dialogAction: {
                 type: DialogActionType.ElicitSlot,
                 intentName: intentName,
@@ -205,9 +214,9 @@ export class ResponseBuilder {
         };
     }
 
-    getCloseResponse(sessionAttributes: SessionAttributes, fulfillmentState: FulfillmentState, message: Message): CloseResponse {
+    getCloseResponse(fulfillmentState: FulfillmentState, message: Message): CloseResponse {
         return {
-            sessionAttributes: sessionAttributes,
+            sessionAttributes: {},
             dialogAction: {
                 type: DialogActionType.Close,
                 fulfillmentState: fulfillmentState,
@@ -216,9 +225,9 @@ export class ResponseBuilder {
         };
     }
 
-    getDelegateResponse(sessionAttributes: SessionAttributes, slots: Slots): DelegateResponse {
+    getDelegateResponse(slots: Slots): DelegateResponse {
         return {
-            sessionAttributes: sessionAttributes,
+            sessionAttributes: {},
             dialogAction: {
                 type: DialogActionType.Delegate,
                 slots: slots
@@ -226,6 +235,199 @@ export class ResponseBuilder {
         };
     }
 }
+
+//************************************************************ */
+// class DynamoDbPersistenceAdapter
+//************************************************************ */
+import * as AWS from 'aws-sdk'
+
+class DynamoDbPersistenceAdapter implements PersistenceAdapter {
+
+    private tableName: string;
+    private attributesId: string;
+    private createTable: boolean;
+    private attributesName: string = 'attributes';
+    protected docClient : AWS.DynamoDB.DocumentClient;
+    private partitionKeyName = 'id';
+    private dynamoDb: AWS.DynamoDB| undefined = undefined;
+
+    constructor(tableName: string,
+                attributesId: string,
+                createTable? : boolean,
+                dynamoDB?: AWS.DynamoDB) {
+        this.tableName = tableName;
+        this.attributesId = attributesId;
+        this.createTable = (createTable) ? createTable : true;
+        
+        if(dynamoDB){
+            this.dynamoDb = dynamoDB;
+        } else {
+            this.dynamoDb = new AWS.DynamoDB();
+        }
+        this.docClient = new AWS.DynamoDB.DocumentClient({
+            convertEmptyValues : true,
+            service : this.dynamoDb,
+        });
+
+        if (this.createTable) {
+            const createTableParams : AWS.DynamoDB.CreateTableInput = {
+                AttributeDefinitions: [{
+                    AttributeName: this.partitionKeyName,
+                    AttributeType: 'S',
+                }],
+                KeySchema: [{
+                    AttributeName: this.partitionKeyName,
+                    KeyType: 'HASH',
+                }],
+                ProvisionedThroughput: {
+                    ReadCapacityUnits: 5,
+                    WriteCapacityUnits: 5,
+                },
+                TableName : this.tableName,
+            };
+
+            this.dynamoDb.createTable(createTableParams, (err) => {
+                if (err && err.code !== 'ResourceInUseException') {
+                    throw Error('Could not create table (' + this.tableName + '): ' + err.message)
+                }
+            });
+        }
+
+    }
+    
+    async getAttributes(_userId : string) : Promise<{[key : string] : any}> {
+
+        const getParams : AWS.DynamoDB.DocumentClient.GetItemInput = {
+            Key : {
+                [this.partitionKeyName] : this.attributesId,
+            },
+            TableName : this.tableName,
+            ConsistentRead : true,
+        };
+
+        let data : AWS.DynamoDB.DocumentClient.GetItemOutput;
+        try {
+            data = await this.docClient.get(getParams).promise();
+        } catch (err) {
+            throw Error('Could not read item (' + this.attributesId + ' from table (' + getParams.TableName + ' ' +err.message);
+        }
+
+        if (!Object.keys(data).length || data.Item === undefined) {
+            return {};
+        } else {
+            return data.Item[this.attributesName];
+        }
+    };
+
+    async saveAttributes(_userId : string, attributes : {[key : string] : any}) : Promise<void> {
+        const putParams : AWS.DynamoDB.DocumentClient.PutItemInput = {
+            Item: {
+                [this.partitionKeyName] : this.attributesId,
+                [this.attributesName] : attributes,
+            },
+            TableName : this.tableName,
+        };
+
+        try {
+            await this.docClient.put(putParams).promise();
+        } catch (err) {
+            throw Error(
+                'Could not save item (' + this.attributesId + ') to table (' + putParams.TableName + '): '+ err.message,
+            );
+        }
+    };
+
+    // public async deleteAttributes(_requestEnvelope : RequestEnvelope) : Promise<void> {
+
+    //     const deleteParams : DynamoDB.DocumentClient.DeleteItemInput = {
+    //         Key : {
+    //             [this.partitionKeyName] : this.attributesId,
+    //         },
+    //         TableName : this.tableName,
+    //     };
+
+    //     try {
+    //         await this.docClient.delete(deleteParams).promise();
+    //     } catch (err) {
+    //         throw Error(
+    //             `Could not delete item (${this.attributesId}) from table (${deleteParams.TableName}): ${err.message}`,
+    //         );
+    //     }
+    // }
+
+    setDocClient(docClient: AWS.DynamoDB.DocumentClient){
+        this.docClient = docClient;
+
+    }
+}
+
+//************************************************************ */
+// class AttributesManager
+//************************************************************ */
+class AttributesManager {
+
+    private persistenceAdapter: PersistenceAdapter|undefined;
+    private requestAttributes : {[key : string] : string}
+    sessionAttributes : {[key : string] : string}
+    persistentAttributes : {[key : string] : string} | undefined;
+    persistentAttributesId :string |undefined;
+
+    constructor(requestEnvelope: IntentRequest, persistentAttributesId: string|undefined, persistenceAdapter: PersistenceAdapter|undefined) {
+        this.persistenceAdapter = persistenceAdapter;
+        this.sessionAttributes = requestEnvelope.sessionAttributes;
+        this.requestAttributes = {};
+        this.persistentAttributes = undefined;
+        this.persistentAttributesId = persistentAttributesId;
+    }
+    
+    getSessionAttributes() : {[key : string] : any} {
+        let tmpSessionAttributes = this.sessionAttributes
+        return tmpSessionAttributes;//this.sessionAttributes;
+    };
+    
+    setSessionAttributes(sessionAttributes : {[key : string] : any}) : void {
+        this.sessionAttributes = sessionAttributes;
+    };
+    
+    getRequestAttributes() : {[key : string] : any} {
+        return this.requestAttributes;
+    };
+
+    setRequestAttributes(requestAttributes : {[key : string] : any}) : void {
+        this.requestAttributes = requestAttributes;
+    };
+    
+    async getPersistentAttributes() : Promise<{[key : string] : any}> {
+        if(this.persistenceAdapter != undefined && this.persistentAttributesId != undefined) {
+            if(this.persistentAttributes == undefined) {
+                this.persistentAttributes = await this.persistenceAdapter.getAttributes(this.persistentAttributesId);
+            }
+            return this.persistentAttributes; 
+        } else{
+            throw Error('PersistentAttributes not initialized.')
+        }
+    };
+
+    setPersistentAttributes(persistentAttributes : {[key : string] : any}) : void {
+        if(this.persistenceAdapter  && this.persistentAttributesId) {
+            this.persistentAttributes = persistentAttributes;
+        } else {
+            throw Error('PersistentAttributes not initialized.')
+        }
+    };
+
+    async savePersistentAttributes() : Promise<void> {
+        if(this.persistenceAdapter  && this.persistentAttributesId) {
+            if(this.persistentAttributes!=undefined){
+                await this.persistenceAdapter.saveAttributes(this.persistentAttributesId, this.persistentAttributes);
+            }
+        } else {
+            throw Error('PersistentAttributes not initialized.')
+        }
+    };
+}
+
+
 //************************************************************ */
 // class Bot
 //************************************************************ */
@@ -236,57 +438,94 @@ class Bot {
     errorChains: ErrorHandler[] = [];
     requestInterceptorChains: RequestInterceptor[] = [];
     responseInterceptorChains: ResponseInterceptor[] = [];
-    
+    persistenceAdapter: PersistenceAdapter|undefined = undefined;
+    tableName: string|undefined = undefined;
+    attributesId: string|undefined = undefined;
+    autoCreateTable: boolean = false;
+    attributesManager:AttributesManager;
+    dynamoDb : AWS.DynamoDB|undefined = undefined;
+     
     constructor() {
 
     }
 
-    addRequestInterceptors(...requestInterceptors : RequestInterceptor[]) {
+    addRequestInterceptors(...requestInterceptors : RequestInterceptor[]): Bot {
         requestInterceptors.forEach( requestInterceptor => {
             this.requestInterceptorChains.push(requestInterceptor);
         })
         return this;
     } 
 
-    addResponseInterceptors(...responseInterceptors : ResponseInterceptor[]) {
+    addResponseInterceptors(...responseInterceptors : ResponseInterceptor[]): Bot {
         responseInterceptors.forEach( responseInterceptor => {
             this.responseInterceptorChains.push(responseInterceptor);
         })
         return this;
     } 
 
-    addRequestHandler(requestHandler: RequestHandler) {
+    addRequestHandler(requestHandler: RequestHandler): Bot {
         this.requestChains.push(requestHandler);
         return this;
     }
     
-    addRequestHandlers(...requestHandlers : RequestHandler[]) {
+    addRequestHandlers(...requestHandlers : RequestHandler[]): Bot {
         requestHandlers.forEach( requestHandler => {
             this.requestChains.push(requestHandler);
         })
         return this;
     } 
 
-    addErrorHandler(errorHandler: ErrorHandler) {
+    addErrorHandler(errorHandler: ErrorHandler): Bot {
         this.errorChains.push(errorHandler);
         return this;
     }
 
-    addErrorHandlers(...errorHandlers : ErrorHandler[]) {
+    addErrorHandlers(...errorHandlers : ErrorHandler[]): Bot {
         errorHandlers.forEach( errorHandler => {
             this.errorChains.push(errorHandler);
         })
         return this;
     } 
-
-    create() {
+    
+    withPersistenceAdapter(persistenceAdapter : PersistenceAdapter): Bot {
+        this.persistenceAdapter = persistenceAdapter;
         return this;
     }
 
-    invoke(requestEnvelope: IntentRequest, context:any) {
+    // Lexの場合は、UserIdを主キーにできないので、明示的に指定する必要があります。
+    withTableName(tableName : string, attributesId: string): Bot {
+        this.tableName = tableName;
+        this.attributesId = attributesId;
+        return this;
+    }
+
+    withAutoCreateTable(autoCreateTable : boolean): Bot{
+        this.autoCreateTable = autoCreateTable;
+        return this;
+    }
+
+    withDynamoDbClient(dynamoDb: AWS.DynamoDB): Bot {
+        this.dynamoDb =  dynamoDb;
+        return this;
+    }
+
+
+    create(): Bot {
+        if(this.tableName !=  undefined && this.attributesId != undefined) {
+            this.persistenceAdapter = new DynamoDbPersistenceAdapter(this.tableName, this.attributesId, this.autoCreateTable, this.dynamoDb);
+        }
+
+        return this;
+    }
+
+    async invoke(requestEnvelope: IntentRequest, context:any) {
         if(!requestEnvelope.currentIntent){
             throw Error('ERROR: requestEnvelope.currentIntent undefined');
         }
+
+        this.persistenceAdapter;
+        this.attributesManager = new AttributesManager(requestEnvelope, this.attributesId, this.persistenceAdapter);
+
         const input:HandlerInput = {
             requestEnvelope,
             context,
@@ -295,7 +534,7 @@ class Bot {
             slots: requestEnvelope.currentIntent.slots,
             slotDetails: requestEnvelope.currentIntent.slotDetails,
             intentName: requestEnvelope.currentIntent.name,
-            attributes: requestEnvelope.sessionAttributes,
+            attributesManager: this.attributesManager,
         };
 
         this.requestInterceptorChains.forEach(requestInterceptor=>{
@@ -307,12 +546,14 @@ class Bot {
         });
         try {
             if((<RequestHandler[]>requestTargets).length > 0){
-                let response = requestTargets[0].handle(input);
+                let response = await requestTargets[0].handle(input);
 
-                this.responseInterceptorChains.forEach(responseInterceptor=>{
+                this.responseInterceptorChains.forEach(responseInterceptor => {
                     responseInterceptor.process(input, response);
                 })
-
+                
+                response.sessionAttributes = this.attributesManager.sessionAttributes;
+                
                 return response;
             }
         } catch (error) {

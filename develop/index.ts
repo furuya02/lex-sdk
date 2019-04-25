@@ -1,6 +1,9 @@
 
 // Order Flower Sample
 import * as Lex from './lex-sdk';
+const AWS = require('aws-sdk');
+AWS.config.credentials = new AWS.SharedIniFileCredentials({profile: 'developer'});
+const tableName = 'let-sdk-sample2';
 
 let bot: Lex.Bot;
 declare var exports: any; 
@@ -10,10 +13,35 @@ exports.handler = async function (event: Lex.IntentRequest, context: any) {
         bot = Lex.BotBuilder()
             .addRequestHandlers(
                 OrderIntentHandler)
+            .addRequestInterceptors(requestInspectorHandler)
+            .withTableName(tableName, "target") // テーブル名指定
+            .withAutoCreateTable(true) //テーブル作成もスキルから行う
+            .withDynamoDbClient(
+                new AWS.DynamoDB({ apiVersion: "latest", region: "us-east-1" })
+            )
             .addErrorHandlers(ErrorHandler)
             .create();
     }
     return bot.invoke(event, context);
+}
+
+  
+// exports.handler = async function (event, context) {
+//     if (!skill) {
+//       skill = Alexa.SkillBuilders.standard() 
+//         .addRequestHandlers(TestHandler)
+//         .withTableName(tableName) // テーブル名指定
+//         .withAutoCreateTable(true) //テーブル作成もスキルから行う
+//         .withDynamoDbClient(
+//           new AWS.DynamoDB({ apiVersion: "latest", region: "us-east-1" })
+//         )
+    
+
+
+const requestInspectorHandler: Lex.RequestInterceptor = {
+    process(_h: Lex.HandlerInput) {
+
+    }
 }
 
 const ErrorHandler = {
@@ -24,7 +52,6 @@ const ErrorHandler = {
         const message =  { contentType: Lex.ContentType.PlainText, content: "ERROR " + error.message };
         return h.responseBuilder
         .getCloseResponse(
-            h.attributes,
             Lex.FulfillmentState.Fulfilled,
             message)
     }
@@ -34,7 +61,17 @@ const OrderIntentHandler: Lex.RequestHandler = {
     canHandle(h: Lex.HandlerInput) {
         return (h.intentName == 'OrderFlowers')
     },
-    handle(h: Lex.HandlerInput) {
+    async handle(h: Lex.HandlerInput) {
+        // セッション情報の取得
+        let attributes = await h.attributesManager.getPersistentAttributes();
+        if(attributes.count == undefined){
+            attributes.count = 0;
+        };
+        console.log("😍" + attributes.count);
+        attributes.count = Number(attributes.count) + 1;
+        await h.attributesManager.setPersistentAttributes(attributes);
+        await h.attributesManager.savePersistentAttributes();
+
 
         const flowerType = h.slots['FlowerType'];
         const date = h.slots['PickupDate'];
@@ -48,25 +85,31 @@ const OrderIntentHandler: Lex.RequestHandler = {
                     message = {contentType:Lex.ContentType.PlainText, content: validationResult.message};
                 }
                 return h.responseBuilder.getElicitSlotResponse(
-                    h.attributes,
                     h.intentName,
                     h.slots,
                     validationResult.violatedSlot,
                     message);
             }
             if (flowerType) {
-                h.attributes.Price = String(flowerType.length * 5); // Elegant pricing model
+                // let attributes = h.attributesManager.getSessionAttributes();
+                // attributes.Price = String(flowerType.length * 5); // Elegant pricing model
+                // h.attributesManager.setSessionAttributes(attributes);
+
+                // let attributes = await h.attributesManager.getPersistentAttributes();
+                // console.log("attributes" + JSON.stringify(attributes));
+                // attributes.Price = String(flowerType.length * 5); // Elegant pricing model
+                // console.log("attributes" + JSON.stringify(attributes));
+                // h.attributesManager.setPersistentAttributes(attributes);
+
             }
             return h.responseBuilder
-                .getDelegateResponse(h.attributes, h.slots)
-
+                .getDelegateResponse(h.slots)
         } else {  // FulfillmentCodeHook
 
             const message =  { contentType: Lex.ContentType.PlainText, content: `Thanks, your order for ${flowerType} has been placed and will be ready for pickup by ${time} on ${date}` };
 
             return h.responseBuilder
             .getCloseResponse(
-                h.attributes,
                 Lex.FulfillmentState.Fulfilled,
                 message)
         }

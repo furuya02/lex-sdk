@@ -6,7 +6,7 @@ With LEX SDK for Node.js (TypeScript), you can create **Amazon Lex** code in the
 
 ## Version
 
-0.1.2
+0.2.0
 
 ## Install
 
@@ -40,7 +40,7 @@ const OrderIntentHandler = {
         if (h.source === Lex.InvocationSource.DialogCodeHook) {
             
             return h.responseBuilder
-                .getDelegateResponse(h.attributes, h.slots)
+                .getDelegateResponse(h.slots)
 
         } else {  // FulfillmentCodeHook
 
@@ -50,7 +50,6 @@ const OrderIntentHandler = {
 
             return h.responseBuilder
             .getCloseResponse(
-                h.attributes,
                 Lex.FulfillmentState.Fulfilled,
                 message)
         }
@@ -70,7 +69,7 @@ const OrderIntentHandler: Lex.RequestHandler = {
         if (h.source === Lex.InvocationSource.DialogCodeHook) {
             
             return h.responseBuilder
-                .getDelegateResponse(h.attributes, h.slots)
+                .getDelegateResponse(h.slots)
 
         } else {  // FulfillmentCodeHook
 
@@ -80,7 +79,6 @@ const OrderIntentHandler: Lex.RequestHandler = {
 
             return h.responseBuilder
             .getCloseResponse(
-                h.attributes,
                 Lex.FulfillmentState.Fulfilled,
                 message)
         }
@@ -104,7 +102,6 @@ const ErrorHandler = {
             content: "ERROR " + error.message };
         return h.responseBuilder
         .getCloseResponse(
-            h.attributes,
             Lex.FulfillmentState.Fulfilled,
             message)
     }
@@ -122,7 +119,6 @@ const ErrorHandler = {
             content: "ERROR " + error.message };
         return h.responseBuilder
         .getCloseResponse(
-            h.attributes,
             Lex.FulfillmentState.Fulfilled,
             message)
     }

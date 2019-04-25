@@ -1,6 +1,6 @@
 {
   "name": "lex-sdk",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "lex-sdk",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,5 +19,11 @@
   "bugs": {
     "url": "https://github.com/furuya02/lex-sdk/issues"
   },
-  "homepage": "https://github.com/furuya02/lex-sdk#readme"
+  "homepage": "https://github.com/furuya02/lex-sdk#readme",
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.24",
+    "@types/aws-sdk": "^2.7.0",
+    "@types/node": "^11.13.2",
+    "aws-sdk": "^2.437.0"
+  }
 }
